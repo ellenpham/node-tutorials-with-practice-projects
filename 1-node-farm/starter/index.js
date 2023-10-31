@@ -2,7 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const url = require('url');
-
+const slugify = require('slugify')
 const replaceTemplate = require('./modules/replaceTemplate');
 
 // READING AND WRITING FILES 
@@ -34,21 +34,22 @@ const replaceTemplate = require('./modules/replaceTemplate');
 
 // SERVER
 
-
 const tempOverview = fs.readFileSync(`${__dirname}/templates/template-overview.html`, 'utf-8');
 const tempCard = fs.readFileSync(`${__dirname}/templates/template-card.html`, 'utf-8');
 const tempProduct = fs.readFileSync(`${__dirname}/templates/template-product.html`, 'utf-8');
 
 
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
-const dataObj = JSON.parse(data); 
+const dataObj = JSON.parse(data);
+
+const slugs = dataObj.map( item => slugify(item.productName, {lower: true}))
+
+console.log(slugs);
 
 const server = http.createServer( (request, response) => {
 
     // destructure query (eg: id=0) and pathname (eg: '/product') from URL 
     const {query, pathname} = url.parse(request.url, true);
-
-    const pathName = request.url;
 
     // Overview page
     if (pathname === '/' || pathname === '/overview') {
@@ -69,7 +70,7 @@ const server = http.createServer( (request, response) => {
 
         // dataObj is an array, we will retrieve the item with id from query
         // a simple way to retrieve an item based on a query string
-        const product = dataObj[query.id]
+        const product = dataObj[query.id];
         const output = replaceTemplate(tempProduct, product);
         response.end(output);
     
