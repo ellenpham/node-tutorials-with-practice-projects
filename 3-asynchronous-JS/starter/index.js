@@ -13,7 +13,7 @@ const readFilePromise = file => {
 const writeFilePromise = (file, data) => {
     return new Promise( (resolve, reject) => {
         fs.writeFile(file, data, err => {
-            if (err) reject('Counld not write file!');
+            if (err) reject('Could not write file!');
             resolve('success')
         });
     });
@@ -92,3 +92,5 @@ readFilePromise(`${__dirname}/dog.txt`)
     console.log(err.message);
 });
 */
+
+
