@@ -9,10 +9,15 @@ const app = express();
 // 1) MIDDLEWARE
 
 // HTTP request logger middleware for Node.js
-app.use(morgan('dev'));
+if(process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
 // Middleware to modify/process incoming request
 app.use(express.json());
+
+// Middleware to access to static files on browser
+app.use(express.static(`${__dirname}/public`));
 
 // Test custom middleware - the order of middleware matters
 // A global middleware should be defined before all route handlers
