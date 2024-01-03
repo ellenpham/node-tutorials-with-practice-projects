@@ -9,7 +9,7 @@ const app = express();
 // 1) MIDDLEWARE
 
 // HTTP request logger middleware for Node.js
-if(process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
@@ -31,11 +31,11 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
-})
+});
 
 // Test route
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Hello from the server side!'});
+  res.status(200).json({ message: 'Hello from the server side!!!' });
 });
 
 // 2) ROUTES
