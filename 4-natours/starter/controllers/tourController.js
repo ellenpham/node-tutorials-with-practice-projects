@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // const fs = require('fs');
 const Tour = require('../models/tourModel');
 
@@ -86,8 +87,43 @@ const Tour = require('../models/tourModel');
 
 const getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    console.log(req.query);
+    // Build query
+    // 1) Filtering
+    // example url: http://localhost:8000/api/v1/tours?difficulty=easy&page=2&sort=1&limit=10
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+    // console.log(req.query, queryObj);
 
+    // 2) Advanced filtering
+    // example url: http://localhost:8000/api/v1/tours?duration[gte]=5&difficulty=easy&price[lt]=1500
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    //console.log(JSON.parse(queryStr));
+
+    // { difficulty: 'easy', duration: {$gte: 5} }
+    // { duration: { gte: '5' }, difficulty: 'easy' }
+    // gte, gt, lte, lt
+
+    const query = Tour.find(JSON.parse(queryStr));
+
+    // Execute query
+    const tours = await query;
+
+    // Other ways to filter data
+    // const tours = await Tour.find({
+    //   duration: 5,
+    //   difficulty: 'easy',
+    // });
+
+    // const tours = await Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    // Send response
     res.status(200).json({
       message: 'success',
       results: tours.length,
