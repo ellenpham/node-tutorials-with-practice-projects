@@ -89,24 +89,35 @@ const getAllTours = async (req, res) => {
   try {
     console.log(req.query);
     // Build query
-    // 1) Filtering
+    // 1A) Filtering
     // example url: http://localhost:8000/api/v1/tours?difficulty=easy&page=2&sort=1&limit=10
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
     // console.log(req.query, queryObj);
 
-    // 2) Advanced filtering
+    // 1B) Advanced filtering
     // example url: http://localhost:8000/api/v1/tours?duration[gte]=5&difficulty=easy&price[lt]=1500
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    //console.log(JSON.parse(queryStr));
+    // console.log(JSON.parse(queryStr));
 
     // { difficulty: 'easy', duration: {$gte: 5} }
     // { duration: { gte: '5' }, difficulty: 'easy' }
     // gte, gt, lte, lt
+    let query = Tour.find(JSON.parse(queryStr));
 
-    const query = Tour.find(JSON.parse(queryStr));
+    // 2) Sorting
+    // example url: http://localhost:8000/api/v1/tours?sort=price --> sort in ascending order
+    // example url: http://localhost:8000/api/v1/tours?sort=-price --> sort in descending order
+    // example url: http://localhost:8000/api/v1/tours?sort=-price,ratingsAvarage
+    // or http://localhost:8000/api/v1/tours?sort=-price,-ratingsAverage
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt'); // default sorting by descending date order
+    }
 
     // Execute query
     const tours = await query;
