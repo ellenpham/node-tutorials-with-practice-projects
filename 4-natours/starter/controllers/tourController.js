@@ -297,7 +297,61 @@ const getTourStats = async (req, res) => {
 
     res.status(200).json({
       message: 'success',
-      data: stats,
+      data: {
+        stats,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
+
+const getMonthlyPlan = async (req, res) => {
+  try {
+    const year = req.params.year * 1; // 2021
+    const plan = await Tour.aggregate([
+      {
+        $unwind: '$startDates', // to ungroup the tours to single tours by their startDates
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`), // >= 2021-01-01
+            $lte: new Date(`${year}-12-31`), // <= 2021-12-31
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$startDates' },
+          numTourStats: { $sum: 1 },
+          tours: { $push: '$name' },
+        },
+      },
+      {
+        $addFields: { month: '$_id' }, // this is used to add the month field with the value of _id
+      },
+      {
+        $project: {
+          _id: 0, // this is used to remove the _id field, set to 1 if we want to display _id
+        },
+      },
+      {
+        $sort: { numTourStats: -1 }, // -1 is for descending order
+      },
+      {
+        $limit: 12, // limit to 12 tours
+      },
+    ]);
+
+    res.status(200).json({
+      message: 'success',
+      data: {
+        plan,
+      },
     });
   } catch (err) {
     res.status(404).json({
@@ -315,6 +369,7 @@ module.exports = {
   deleteTour,
   aliasTopTours,
   getTourStats,
+  getMonthlyPlan,
   //checkID,
   //checkBody,
 };
