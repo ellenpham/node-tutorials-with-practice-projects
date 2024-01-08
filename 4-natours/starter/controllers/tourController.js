@@ -126,7 +126,8 @@ const getAllTours = async (req, res) => {
       // console.log(sortBy); // -price -ratingsAverage
       query = query.sort(sortBy);
     } else {
-      query = query.sort('-createdAt'); // default sorting by descending date order
+      query = query.sort('_id');
+      // default sorting --> change from sort by createdAt to sort by id as it causes conflicts with pagination
     }
 
     // 3) Field limiting
@@ -136,6 +137,21 @@ const getAllTours = async (req, res) => {
       query = query.select(fields);
     } else {
       query = query.select('-__v');
+    }
+
+    // 4) Pagination
+    // example url: http://localhost:8000/api/v1/tours?page=2&limit=3
+    const page = req.query.page * 1 || 1; // to convert string to number
+    const limit = req.query.limit * 1 || 100; // the number of results to be displayed in each page
+    const skip = (page - 1) * limit;
+    // page=2&limit=10, page 1: 1-10, page 2: 11-20, page 3: 21-30, etc.
+    // when we need to jump to a particular page, it means we need to skip the previous pages
+    // and it is calculated as the previous page times the number of results on each page "skip = (page - 1) * limit"
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error('This page does not exist');
     }
 
     // EXECUTE QUERY
