@@ -85,6 +85,16 @@ const Tour = require('../models/tourModel');
 
 // Controllers interacting with real database
 
+// example url: http://localhost:8000/api/v1/tours?limit=5&sort=-ratingsAverage,price
+// converted to http://localhost:8000/api/v1/tours/top-5-cheap
+// middleware to custom or pre-fill the query string when users click to the '/top-5-cheap' url
+const aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name, price, ratingsAverage, summary, difficulty';
+  next();
+};
+
 const getAllTours = async (req, res) => {
   try {
     console.log(req.query); // { difficulty: 'easy', page: '2', sort: '1', limit: '10' }
@@ -255,6 +265,7 @@ module.exports = {
   createTour,
   updateTour,
   deleteTour,
+  aliasTopTours,
   //checkID,
   //checkBody,
 };
