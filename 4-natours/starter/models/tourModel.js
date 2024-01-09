@@ -57,6 +57,10 @@ const tourSchema = new mongoose.Schema(
       select: false,
     },
     startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -73,6 +77,7 @@ tourSchema.virtual('durationWeeks').get(function () {
 // use normal function because with need this to reference to the current document
 
 // Mongoose document middleware, only runs before .save() and .create() - pre save hook
+// save the slug converted from tour name before saving the document to the collection
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
@@ -87,6 +92,21 @@ tourSchema.pre('save', function (next) {
 //   console.log(doc);
 //   next();
 // });
+
+// Mongoose query middleware
+// only show the non-secret tour when getting all tours
+// use RegEx for 'find' so the hook is triggered with all find query like findOne, findOneAndUpdate, etc.
+tourSchema.pre(/^find/, function (next) {
+  this.find({ secretTour: { $ne: true } });
+  this.start = Date.now();
+  next();
+});
+
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds.`);
+  console.log(docs);
+  next();
+});
 
 // Create Tour model from tourSchema
 const Tour = mongoose.model('Tour', tourSchema);
