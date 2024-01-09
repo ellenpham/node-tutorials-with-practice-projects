@@ -76,7 +76,7 @@ tourSchema.virtual('durationWeeks').get(function () {
 });
 // use normal function because with need this to reference to the current document
 
-// Mongoose document middleware, only runs before .save() and .create() - pre save hook
+// Document middleware, only runs before .save() and .create() - pre save hook
 // save the slug converted from tour name before saving the document to the collection
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
@@ -93,7 +93,7 @@ tourSchema.pre('save', function (next) {
 //   next();
 // });
 
-// Mongoose query middleware
+// Query middleware
 // only show the non-secret tour when getting all tours
 // use RegEx for 'find' so the hook is triggered with all find query like findOne, findOneAndUpdate, etc.
 tourSchema.pre(/^find/, function (next) {
@@ -105,6 +105,14 @@ tourSchema.pre(/^find/, function (next) {
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds.`);
   console.log(docs);
+  next();
+});
+
+// Aggregation middleware
+tourSchema.pre('aggregate', function (next) {
+  // use unshift() to add one more stage to the pipeline
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  console.log(this.pipeline());
   next();
 });
 
