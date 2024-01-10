@@ -1,4 +1,11 @@
+const AppError = require('../utils/appError');
+
 /* eslint-disable no-console */
+const handleCastErrorDB = (err) => {
+  const message = `Invalid ${err.path}: ${err.value}.`;
+  return new AppError(message, 400);
+};
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -18,7 +25,7 @@ const sendErrorProd = (err, res) => {
     // Programming or other unknow error: don't leak error details
   } else {
     // 1) Log error
-    console.log('ERROR: ', err);
+    console.error('ERROR: ', err);
     // 2) Send generic message
     res.status(500).json({
       status: 'error',
@@ -34,6 +41,11 @@ module.exports = (err, req, res, next) => {
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
+    let error = { ...err };
+    if (err.name === 'CastError') {
+      error = handleCastErrorDB(error);
+      return sendErrorProd(error, res);
+    }
     sendErrorProd(err, res);
   }
 };
