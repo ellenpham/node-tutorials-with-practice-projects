@@ -33,6 +33,7 @@ app.use(express.static(`${__dirname}/public`));
 // Middleware to return when the exact time a request happens
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  console.log(req.headers);
   next();
 });
 

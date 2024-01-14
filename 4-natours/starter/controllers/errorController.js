@@ -18,6 +18,14 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+// eslint-disable-next-line no-unused-vars
+const handleJwtError = () =>
+  new AppError('Invalid token. Please log in again', 401);
+
+// eslint-disable-next-line no-unused-vars
+const handleTokenExpiredError = () =>
+  new AppError('Token has expired. Please log in again', 401);
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -68,6 +76,16 @@ module.exports = (err, req, res, next) => {
 
     if (err.name === 'ValidationError') {
       error = handleValidationErrorDB(error);
+      return sendErrorProd(error, res);
+    }
+
+    if (err.name === 'JsonWebTokenError') {
+      error = handleJwtError();
+      return sendErrorProd(error, res);
+    }
+
+    if (err.name === 'TokenExpiredError') {
+      error = handleTokenExpiredError();
       return sendErrorProd(error, res);
     }
 

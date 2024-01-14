@@ -99,7 +99,7 @@ const aliasTopTours = (req, res, next) => {
 };
 
 const getAllTours = catchAsync(async (req, res, next) => {
-  console.log(req.query);
+  //console.log(req.query);
   // BUILD QUERY
   // 1A) Filtering
   // example url: http://localhost:8000/api/v1/tours?difficulty=easy&page=2&sort=1&limit=10
