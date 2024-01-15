@@ -49,7 +49,8 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// create an instance methods and is available on all user documents
+// create an instance method to check if password is correct when users logging in
+// the methos is available on all user documents
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword,
@@ -57,14 +58,16 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
+// create an intance method to check if the password has been changed after the token is issued
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  // if the passwordChangedAt exists, then compare with the JWT timestamp (decoded.iat)
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10,
     );
-    console.log(changedTimestamp, JWTTimestamp);
-    return JWTTimestamp < changedTimestamp;
+    // console.log(changedTimestamp, JWTTimestamp);
+    return JWTTimestamp < changedTimestamp; // return true if the token is issued after the password has been changed
   }
   // False means password NOT changed
   return false;
