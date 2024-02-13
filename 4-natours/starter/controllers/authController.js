@@ -14,6 +14,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
+    role: req.body.role,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
   });
@@ -86,7 +87,22 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError('User recently changed password! Please log in again', 401),
     );
   }
+  // IMPORTANT STEP
   // Grant access to protected route
   req.user = currentUser;
   next();
 });
+
+exports.restrictTo =
+  (...roles) =>
+  // the restrictTo function returns the middleware function
+  // it runs because the closure has access to roles
+  (req, res, next) => {
+    // roles is an array ['admin', 'lead-guide']
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403),
+      );
+    }
+    next();
+  };
